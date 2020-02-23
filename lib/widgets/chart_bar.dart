@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 class ChartBar extends StatelessWidget {
   final double price;
   final String day;
+  final double pricePercent;
 
-  ChartBar(this.price, this.day);
+  ChartBar(this.price, this.day, this.pricePercent);
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Text("\$$price"),
+        Container(height: 15, child: FittedBox(child: Text("\$$price"))),
         SizedBox(
           height: 5,
         ),
@@ -25,7 +26,7 @@ class ChartBar extends StatelessWidget {
                     border: Border.all(color: Colors.grey, width: 1.0)),
               ),
               FractionallySizedBox(
-                heightFactor: 0.5,
+                heightFactor: pricePercent,
                 child: Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).accentColor,

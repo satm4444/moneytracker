@@ -4,6 +4,7 @@ import 'package:moneytracker/widgets/chart_bar.dart';
 
 class Chart extends StatelessWidget {
   final List<Transaction> _recenTransaction;
+
   Chart(this._recenTransaction);
 
   List<Map<String, Object>> get groupedTransaction {
@@ -21,6 +22,12 @@ class Chart extends StatelessWidget {
     }).reversed.toList();
   }
 
+  double get totalSpending {
+    return groupedTransaction.fold(0.0, (sum, item) {
+      return sum + item['amount'];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -29,7 +36,15 @@ class Chart extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: groupedTransaction.map((tx) {
-            return ChartBar(tx["amount"] as double, tx["day"]);
+            return Flexible(
+              fit: FlexFit.tight,
+              child: ChartBar(
+                  tx["amount"] as double,
+                  tx["day"],
+                  totalSpending == 0.0
+                      ? 0.0
+                      : (tx["amount"] as double) / totalSpending),
+            );
           }).toList(),
         ));
   }

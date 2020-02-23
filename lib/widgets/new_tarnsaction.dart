@@ -13,9 +13,14 @@ class _NewTransactionState extends State<NewTransaction> {
   final amountController = new TextEditingController();
 
   void addToTransaction(){
-    print(titleController.text);
-    print(amountController.text);
-    widget.addTx(titleController.text,double.parse(amountController.text));
+    String title = titleController.text;
+    double price = double.parse(amountController.text);
+
+    if(title.isEmpty || price<0){
+      return;
+    }
+
+    widget.addTx(title,price);
     Navigator.of(context).pop();
   }
 

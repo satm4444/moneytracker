@@ -1,10 +1,20 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:moneytracker/model/transaction.dart';
 import 'package:moneytracker/widgets/chart.dart';
 import 'package:moneytracker/widgets/new_tarnsaction.dart';
 import 'package:moneytracker/widgets/transaction_list.dart';
+import 'dart:io';
 
-void main() => runApp(MyApp());
+void main() {
+//  WidgetsFlutterBinding.ensureInitialized();
+//  SystemChrome.setPreferredOrientations(
+//      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]).then((_) {
+//
+//  });
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -38,6 +48,7 @@ class MoneyTrackPage extends StatefulWidget {
 
 class _MoneyTrackPageState extends State<MoneyTrackPage> {
   List<Transaction> _userTransaction = [];
+  bool _showChart = false;
 
   void _addTransaction(String txTitle, double txPrice, DateTime txDate) {
     Transaction newTx = new Transaction(
@@ -74,31 +85,91 @@ class _MoneyTrackPageState extends State<MoneyTrackPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Money Tracker"),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              showBtSheet(context);
-            },
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+
+    final PreferredSizeWidget appBar = Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: Text("Money Tracker"),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                GestureDetector(
+                  child: Icon(CupertinoIcons.add),
+                  onTap: () {
+                    showBtSheet(context);
+                  },
+                )
+              ],
+            ),
           )
-        ],
-      ),
-      body: Column(
-        children: <Widget>[
-          Chart(_recentTransaction),
-          Transactionlist(_userTransaction, _deleteTransaction),
-        ],
-      ),
+        : AppBar(
+            title: Text("Money Tracker"),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () {
+                  showBtSheet(context);
+                },
+              )
+            ],
+          );
+
+    final pageBody = SingleChildScrollView(
+        child: Column(
+      children: <Widget>[
+        if (isLandscape)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text("Show Chart"),
+              Switch.adaptive(
+                  value: _showChart,
+                  onChanged: (val) {
+                    setState(() {
+                      _showChart = val;
+                    });
+                  }),
+            ],
+          ),
+        if (isLandscape)
+          _showChart
+              ? Container(
+                  height: (mediaQuery.size.height * 0.7) -
+                      mediaQuery.padding.top -
+                      appBar.preferredSize.height,
+                  child: Chart(_recentTransaction))
+              : Container(
+                  height: (mediaQuery.size.height * 0.7) -
+                      mediaQuery.padding.top -
+                      appBar.preferredSize.height,
+                  child: Transactionlist(_userTransaction, _deleteTransaction)),
+        if (!isLandscape)
+          Container(
+              height: (mediaQuery.size.height * 0.35) -
+                  mediaQuery.padding.top -
+                  appBar.preferredSize.height,
+              child: Chart(_recentTransaction)),
+        if (!isLandscape)
+          Container(
+              height: (mediaQuery.size.height * 0.7) -
+                  mediaQuery.padding.top -
+                  appBar.preferredSize.height,
+              child: Transactionlist(_userTransaction, _deleteTransaction)),
+      ],
+    ));
+    return Scaffold(
+      appBar: appBar,
+      body: pageBody,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {
-          showBtSheet(context);
-        },
-      ),
+      floatingActionButton: Platform.isIOS
+          ? Container()
+          : FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () {
+                showBtSheet(context);
+              },
+            ),
     );
   }
 }
